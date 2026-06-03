@@ -1,0 +1,345 @@
+{
+  "info": {
+    "name": "Supermarket API",
+    "description": "Complete test collection for the Online Supermarket microservices project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000", "type": "string" },
+    { "key": "productId", "value": "1", "type": "string" },
+    { "key": "orderId", "value": "1", "type": "string" },
+    { "key": "customerId", "value": "1", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "Flow 1 — Guest Browsing (Public)",
+      "description": "Verifies that product browsing and search work without login, and that placing an order requires authentication.",
+      "item": [
+        {
+          "name": "1.1 GET products by category",
+          "description": "Public endpoint — no login required. Returns products filtered by categoryId.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?categoryId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"],
+              "query": [{ "key": "categoryId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "1.2 GET all products",
+          "description": "Public endpoint — returns the full product catalog.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "1.3 GET categories",
+          "description": "Public endpoint — returns all product categories.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "1.4 SEARCH products (Elasticsearch)",
+          "description": "Public search via Elasticsearch. Expected: 200 with matching products.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/search/products?q=milk",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "products"],
+              "query": [{ "key": "q", "value": "milk" }]
+            }
+          }
+        },
+        {
+          "name": "1.5 POST order WITHOUT login → 401",
+          "description": "Guest attempts to place an order. Expected: 401 Unauthorized from the gateway (request never reaches order-service).",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[{\"productId\": 1, \"quantity\": 2}]"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Flow 2 — Customer Places an Order",
+      "description": "Full order flow: login as regular user, place order, verify owner-only access, verify 403 for other users.",
+      "item": [
+        {
+          "name": "2.1 LOGIN as user",
+          "description": "Authenticates as a regular user. Sets ACCESS_TOKEN cookie. Expected: 200.",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"password\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.2 POST create order",
+          "description": "Authenticated user places an order. customerId is taken from JWT — NOT from the body. Expected: 201 with total price and order details.",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\"productId\": 1, \"quantity\": 2},\n  {\"productId\": 2, \"quantity\": 1}\n]"
+            }
+          }
+        },
+        {
+          "name": "2.3 GET own order → 200",
+          "description": "Owner reads their own order. Expected: 200 with order details.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{orderId}}"]
+            }
+          }
+        },
+        {
+          "name": "2.4 LOGOUT user",
+          "description": "Clears the ACCESS_TOKEN cookie. Expected: 200.",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "2.5 GET other user order → 403",
+          "description": "After login as admin, tries to read user's order using admin token — this should succeed for admin. Test by logging in as a DIFFERENT regular user and trying to read orderId=1.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{orderId}}"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Flow 3 — Admin Manages Inventory",
+      "description": "Full admin flow: login as admin, create/update/delete products, update order status, view all orders.",
+      "item": [
+        {
+          "name": "3.1 LOGIN as admin",
+          "description": "Authenticates as admin. Sets ACCESS_TOKEN cookie with ROLE_ADMIN. Expected: 200.",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3.2 POST create product (ADMIN)",
+          "description": "Admin creates a new product. Expected: 201. Also triggers ProductCreatedEvent to Kafka → search-service indexes it.",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"CHEESE-500G\",\n  \"name\": \"Cheese 500g\",\n  \"description\": \"Yellow cheese block\",\n  \"price\": 24.90,\n  \"stockQuantity\": 50,\n  \"categoryId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "3.3 PUT update product (ADMIN)",
+          "description": "Admin updates an existing product. Expected: 200 with updated data.",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"MILK-3PCT-1L\",\n  \"name\": \"Milk 3% 1L (updated)\",\n  \"description\": \"Fresh milk updated\",\n  \"price\": 6.50,\n  \"stockQuantity\": 90,\n  \"categoryId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "3.4 PATCH order status → SHIPPED (ADMIN)",
+          "description": "Admin updates order status. Expected: 200. Triggers OrderEvent to Kafka.",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{orderId}}", "status"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SHIPPED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3.5 GET all orders (ADMIN)",
+          "description": "Admin views all orders in the system. Expected: 200 with full list.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "3.6 DELETE product (ADMIN)",
+          "description": "Admin deletes a product. Expected: 204. Triggers ProductDeletedEvent to Kafka → search-service removes it from index.",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Flow 4 — Defense in Depth",
+      "description": "Proves both security layers work: gateway returns 401, service returns 403.",
+      "item": [
+        {
+          "name": "4.1 DELETE product WITHOUT cookie → 401 (gateway)",
+          "description": "No cookie sent. Expected: 401 from the GATEWAY — request never reaches product-service. Proves layer 1 works.",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "1"]
+            }
+          }
+        },
+        {
+          "name": "4.2 LOGIN as regular user",
+          "description": "Login as USER (not admin) to get a valid cookie.",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"password\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4.3 DELETE product WITH user cookie → 403 (service)",
+          "description": "Valid cookie but ROLE_USER only. Gateway passes the request. product-service @PreAuthorize rejects it. Expected: 403. Proves layer 2 works.",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "1"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Flow 5 — Kubernetes Self-Healing (Reference)",
+      "description": "These are kubectl commands run in terminal during the presentation — not HTTP requests. Included here as documentation.",
+      "item": [
+        {
+          "name": "5.1 [kubectl] Get pods",
+          "description": "Run in terminal: kubectl get pods -n supermarket",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "5.2 [kubectl] Delete order-service pod",
+          "description": "Run in terminal: kubectl delete pod -l app=order-service -n supermarket — Kubernetes recreates it automatically.",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        }
+      ]
+    }
+
+  ]
+}

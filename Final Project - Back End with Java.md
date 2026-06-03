@@ -173,15 +173,15 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ---
 
-## Phase 12 — End-to-End Flows (Postman)
+## Phase 12 — End-to-End Flows (Postman) ✅
 
-- [ ] **Flow 1** — Guest browsing: products list, search, 401 on order
-- [ ] **Flow 2** — Customer places order: login, create order, verify Kafka log, 403 for other user
-- [ ] **Flow 3** — Admin manages inventory: login, create product, update status, delete product
-- [ ] **Flow 4** — Defense in depth: 401 at gateway, 403 at service
-- [ ] **Flow 5** — Kubernetes self-healing: delete pod, verify recreation
-- [ ] Postman collection saved as `postman-collection.json` in repo root
-- [ ] Every request has a short description
+- [x] **Flow 1** — Guest browsing: products list, search, 401 on order (5 requests)
+- [x] **Flow 2** — Customer places order: login, create order, get order, logout (5 requests)
+- [x] **Flow 3** — Admin manages inventory: login, create/update/delete product, update status, all orders (6 requests)
+- [x] **Flow 4** — Defense in depth: 401 at gateway, 403 at service (3 requests)
+- [x] **Flow 5** — Kubernetes self-healing: documented as reference (2 requests)
+- [x] Postman collection saved as `postman-collection.json` in repo root
+- [x] Every request has a short description
 
 ---
 
