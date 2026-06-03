@@ -1,0 +1,8 @@
+com\supermarket\search\consumer\ProductEventConsumer.class
+com\supermarket\search\dto\ProductEvent.class
+com\supermarket\search\dto\OrderEvent.class
+com\supermarket\search\SearchServiceApplication.class
+com\supermarket\search\controller\SearchController.class
+com\supermarket\search\repository\ProductSearchRepository.class
+com\supermarket\search\consumer\OrderEventConsumer.class
+com\supermarket\search\document\ProductDocument.class

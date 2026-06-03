@@ -96,16 +96,17 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ---
 
-## Phase 6 — search-service
+## Phase 6 — search-service ✅
 
-- [ ] Elasticsearch connected
-- [ ] Kafka consumer configured for `product-events`
-- [ ] Kafka consumer configured for `order-events`
-- [ ] Products indexed on CREATE / UPDATE / DELETE events
-- [ ] `GET /api/search/products?q=...` returns results from Elasticsearch
-- [ ] Unit test passes
-- [ ] Integration test passes
-- [ ] Service runs on port **8083**
+- [x] Elasticsearch connected
+- [x] Kafka consumer configured for `product-events`
+- [x] Kafka consumer configured for `order-events`
+- [x] Products indexed on CREATE / UPDATE / DELETE events
+- [x] `GET /api/search/products?q=...` returns results from Elasticsearch
+- [x] Unit test passes — 3 tests
+- [x] Slice test passes — 2 tests
+- [x] Integration test passes — 2 tests
+- [x] Service runs on port **8083**
 
 ---
 
