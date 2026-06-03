@@ -1,0 +1,205 @@
+
+
+Final Project – Back End with Java
+
+Final Project — Online Supermarket Application
+
+A capstone project covering all course topics. You will build a complete microservices system for an online supermarket, incorporating every layer covered in the lectures: Gateway, asynchronous events, search, authentication and authorization, automated testing, and deployment to Kubernetes.
+
+Reference examples: This project applies the Supermarket domain to the same patterns demonstrated in the course using the Bookstore sample and the Zoo exercise. You are encouraged to refer to them as active references.
+
+The Domain
+
+An online supermarket store. A user has a shopping cart and can search for products, add them to the cart, and place an order. The supermarket has an administrator who manages the inventory.
+
+
+Entities
+EntityKey FieldsNotesProductid, sku (unique), name, description, price, stockQuantity, categoryId, imageUrlA product listed in the catalogCategoryid, nameCategory (Dairy, Bakery, Produce, …)Customerid, username, passwordHash, email, address, rolesEnd userOrderid, customerId, status (PENDING / CONFIRMED / SHIPPED / DELIVERED), totalPrice, createdAtAn orderOrderItemid, orderId, productId, quantity, priceAtPurchaseA line in an order — stores the product name and price at the time of purchase (snapshot — so orders are not broken if the price changes)AppUserid, username, passwordHash, rolesAuthentication identity (USER / ADMIN). Separate from Customer (Customer is a domain entity)
+Roles
+
+• USER — Regular customers. Can search for products, create their own orders, and update their profile.
+• ADMIN — Supermarket administrators. Can manage inventory (CRUD on Product, Category) and view all orders.
+
+
+
+
+Architecture
+
+                       ????????????????????????
+                       ?   API Gateway         ?  port 8000
+                       ?  + JWT validation     ?
+                       ????????????????????????
+                                 ?
+        ???????????????????????????????????????????????????????
+        ?        ?        ?             ?          ?          ?
+   product   order    customer      auth       search     image
+   service   service  service       service    service    service
+   (8080)    (8081)   (8082)        (8085)     (8083)     (8084)
+   Postgres  Postgres Postgres     Postgres   Elastic-   S3
+                                              search
+            ?
+            ??? publish ??? Kafka (order-events) ??? search-service
+                                                ??? email-notifier (optional)
+
+
+
+
+
+
+
+Services
+ServicePortResponsibilityapi-gateway8000Single router for all requests; validates the ACCESS_TOKEN cookie. Routes /api/auth/*, GET /api/products/*, and GET /api/categories/* remain public.auth-service8085Issues JWTs. Login/logout. Maintains AppUser table (USER + ADMIN) with BCrypt.product-service8080Product and category catalog. On product CREATE, publishes an event to Kafka.order-service8081Order creation, total calculation, status transitions. On order CREATE, publishes OrderCreatedEvent to Kafka. Validates stock and decrements stockQuantity for each product during checkout (calls product-service).customer-service8082Customer profile (address, phone). Separate from AppUser to avoid mixing identity with domain.search-service8083Kafka consumer for product-events and order-events. Indexes to Elasticsearch. Exposes GET /api/search/products?q=...image-service8084Product image upload to S3.
+Kafka Topics
+TopicProducerConsumerproduct-eventsproduct-service (CREATE / UPDATE / DELETE)search-serviceorder-eventsorder-service (CREATE / STATUS_CHANGE)search-service, optionally email-notifier
+Authorization Patterns
+
+• GET /api/products/**, GET /api/categories/** — public.
+• POST /api/auth/login, POST /api/auth/logout — public.
+• POST /api/orders — @PreAuthorize("isAuthenticated()"). The customerId is taken from the Authentication object (not from the request body).
+• GET /api/orders/{id} — @PreAuthorize("@orderAuthz.canRead(#id)") — admin or the owner only.
+• GET /api/orders (all orders) — @PreAuthorize("hasRole('ADMIN')").
+• POST /api/products, PUT /api/products/{id}, DELETE /api/products/{id} — @PreAuthorize("hasRole('ADMIN')").
+• PATCH /api/orders/{id}/status — @PreAuthorize("hasRole('ADMIN')").
+
+
+
+
+
+
+
+
+
+
+Project Requirements
+
+Mandatory Requirements — What We Covered in the Course
+
+1. API Gateway (Lesson 4): Spring Cloud Gateway with a route per service. All cross-cutting concerns (auth) handled at the gateway.
+2. Postgres + JPA (Lesson 3): Every service with persistent data. Proper relations (Order to OrderItem with cascade), unique constraints (sku, username).
+3. Kafka Producer + Consumer (Lesson 4): product-service and order-service publish events on changes. search-service consumes them.
+4. Elasticsearch (Lesson 4): search-service indexes products and enables search by name / description / category.
+5. Authentication & Authorization (Lesson 5): JWT in HttpOnly cookies. JwtGatewayFilter at the gateway, JwtAuthFilter in each business service. @EnableMethodSecurity + @PreAuthorize. Handler for AccessDeniedException returning 403.
+6. Automated Tests (Lesson 5): At minimum for each service — 1 unit test (Mockito), 1 slice test (@WebMvcTest), and 1 integration test (@SpringBootTest + H2). Minimum 60% code coverage with JaCoCo.
+8. Docker (Lesson 5): Multi-stage Dockerfile for each service. docker-compose.yml that brings up the entire stack (including Postgres, Kafka, ES) with a single command.
+9. Kubernetes (Lesson 5): Deployment + Service + Secret/ConfigMap manifests, and at least one service with replicas > 1.
+10. Postman Collection — Coverage of all key flows (login, search, create order, admin product CRUD).
+
+Flows to Demonstrate in the Project
+The following flows must work end-to-end (Postman collection or curl):
+
+Flow 1 — Guest Browsing the Catalog
+1. GET /api/products?categoryId=2 ? list of products in the category.
+2. GET /api/search/products?q=milk ? search via Elasticsearch.
+3. POST /api/orders ? 401 (a guest cannot place an order).
+
+Flow 2 — Customer Places an Order
+1. POST /api/auth/login (user / password) ? 200 + cookie.
+2. POST /api/orders with [{productId: 1, quantity: 2}, {productId: 7, quantity: 1}] ? 201, response includes the total and updated stock.
+3. In the logs: OrderCreatedEvent published to Kafka, search-service indexes.
+4. GET /api/orders/{id} by the same customer ? 200.
+5. GET /api/orders/{id} by a different customer ? 403.
+
+Flow 3 — Admin Manages Inventory
+1. POST /api/auth/login (admin / password) ? 200.
+2. POST /api/products — create a new product ? 201, ProductCreatedEvent published, search-service indexes.
+3. PATCH /api/orders/55/status with {status: "SHIPPED"} ? 200.
+4. DELETE /api/products/3 ? 204.
+5. GET /api/orders ? list of all orders.
+
+Flow 4 — Defense in Depth
+1. Attempt DELETE /api/products/1 without a cookie ? 401 from the gateway (request never reaches the service).
+2. Login as a regular user; attempt the same DELETE ? 403 from product-service (@PreAuthorize("hasRole('ADMIN')") rejects). Proof that both layers are working.
+
+Flow 5 — Self-Healing in Kubernetes (Presentation)
+1. kubectl get pods -n supermarket ? view the pods.
+2. kubectl delete pod -l app=order-service -n supermarket ? Kubernetes recreates the pod.
+3. While the pod is restarting, POST /api/orders still works if there are multiple replicas.
+
+
+
+
+
+
+
+
+
+
+
+Recommended Folder Structure
+
+supermarket/
+??? pom.xml                       (aggregator — imports all modules)
+??? docker-compose.yml            (entire stack)
+??? README.md                     (how to run, structure, decisions)
+??? .github/workflows/ci.yml      (Maven test + build)
+??? postman-collection.json
+??? api-gateway/
+?   ??? pom.xml
+?   ??? Dockerfile
+?   ??? src/main/{java,resources}/...
+??? auth-service/
+?   ??? pom.xml
+?   ??? Dockerfile
+?   ??? src/{main,test}/...
+??? product-service/
+?   ??? pom.xml
+?   ??? Dockerfile
+?   ??? src/{main,test}/...
+??? order-service/
+?   ??? pom.xml
+?   ??? Dockerfile
+?   ??? src/{main,test}/...
+??? customer-service/
+??? search-service/
+??? image-service/
+??? k8s/
+    ??? 00-namespace.yaml
+    ??? 10-postgres.yaml
+    ??? 20-secrets.yaml
+    ??? 30-auth-service.yaml
+    ??? 40-product-service.yaml
+    ??? 50-order-service.yaml
+    ??? 99-api-gateway.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+How to Submit
+
+1. Public GitHub repo (or shared with me), with a clear README.
+2. The README must include:
+• How to run locally (docker compose up -d).
+• How to run the tests (mvn -pl <service> verify).
+• How to deploy to Kubernetes (kubectl apply -f k8s/).
+3. The Postman collection is included in the repo. Every request should have a short description of what it tests.
+
+Success is not about submitting everything. Success is about submitting what works end-to-end. Four services that work across all flows are better than seven services where half are broken.
+
+Project Delivery
+
+For code reviewing , you need to upload the source to any repository (git,Google drive..)
+And send the link in a mail to devprojects2000@gmail.com
+The title should be “[Course No] - Java Final Project [Full Name]” for example:
+Java 11 – Java Final project – Avi Israeli
+
+
+
+
+
+
+
+
+
+
+
+
+
+
