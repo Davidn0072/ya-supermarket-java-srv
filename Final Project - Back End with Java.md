@@ -159,17 +159,17 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ---
 
-## Phase 11 — Kubernetes
+## Phase 11 — Kubernetes ✅
 
-- [ ] `k8s/00-namespace.yaml`
-- [ ] `k8s/10-postgres.yaml`
-- [ ] `k8s/20-secrets.yaml`
-- [ ] `k8s/30-auth-service.yaml`
-- [ ] `k8s/40-product-service.yaml`
-- [ ] `k8s/50-order-service.yaml`
-- [ ] `k8s/99-api-gateway.yaml`
-- [ ] At least one service has `replicas: 2` or more
-- [ ] `kubectl apply -f k8s/` deploys successfully
+- [x] `k8s/00-namespace.yaml` — namespace: supermarket
+- [x] `k8s/10-postgres.yaml` — Postgres + Kafka + Zookeeper + Elasticsearch
+- [x] `k8s/20-secrets.yaml` — Secret + ConfigMap
+- [x] `k8s/30-auth-service.yaml` — Deployment + Service
+- [x] `k8s/40-product-service.yaml` — Deployment + Service
+- [x] `k8s/50-order-service.yaml` — Deployment + Service
+- [x] `k8s/99-api-gateway.yaml` — Deployment + NodePort (port 30000)
+- [x] `order-service` has `replicas: 2`
+- [ ] `kubectl apply -f k8s/` (יבוצע בהגשה / presentation)
 
 ---
 
