@@ -1,0 +1,10 @@
+com\supermarket\auth\entity\AppUser.class
+com\supermarket\auth\service\UserDetailsServiceImpl.class
+com\supermarket\auth\security\JwtAuthFilter.class
+com\supermarket\auth\AuthServiceApplication.class
+com\supermarket\auth\service\JwtService.class
+com\supermarket\auth\config\DataInitializer.class
+com\supermarket\auth\security\SecurityConfig.class
+com\supermarket\auth\repository\AppUserRepository.class
+com\supermarket\auth\controller\AuthController.class
+com\supermarket\auth\dto\LoginRequest.class
