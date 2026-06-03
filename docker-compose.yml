@@ -1,0 +1,214 @@
+networks:
+  supermarket-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  elasticsearch-data:
+
+services:
+
+  # ─── Infrastructure ────────────────────────────────────────────
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    networks: [supermarket-net]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    networks: [supermarket-net]
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    networks: [supermarket-net]
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    networks: [supermarket-net]
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\\|yellow\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ─── Application Services ──────────────────────────────────────
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    networks: [supermarket-net]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: supermarket-jwt-secret-key-must-be-at-least-32-characters
+      JWT_EXPIRATION: 86400000
+    ports:
+      - "8085:8085"
+
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    container_name: product-service
+    networks: [supermarket-net]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/product_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: supermarket-jwt-secret-key-must-be-at-least-32-characters
+    ports:
+      - "8080:8080"
+
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: order-service
+    networks: [supermarket-net]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PRODUCT_SERVICE_URL: http://product-service:8080
+      JWT_SECRET: supermarket-jwt-secret-key-must-be-at-least-32-characters
+    ports:
+      - "8081:8081"
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: customer-service/Dockerfile
+    container_name: customer-service
+    networks: [supermarket-net]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: supermarket-jwt-secret-key-must-be-at-least-32-characters
+    ports:
+      - "8082:8082"
+
+  search-service:
+    build:
+      context: .
+      dockerfile: search-service/Dockerfile
+    container_name: search-service
+    networks: [supermarket-net]
+    depends_on:
+      kafka:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8083:8083"
+
+  image-service:
+    build:
+      context: .
+      dockerfile: image-service/Dockerfile
+    container_name: image-service
+    networks: [supermarket-net]
+    environment:
+      AWS_S3_BUCKET: supermarket-images
+      AWS_S3_REGION: us-east-1
+      AWS_ACCESS_KEY: YOUR_ACCESS_KEY
+      AWS_SECRET_KEY: YOUR_SECRET_KEY
+    ports:
+      - "8084:8084"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    networks: [supermarket-net]
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+      - customer-service
+      - search-service
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://auth-service:8085
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: http://product-service:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://order-service:8081
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://customer-service:8082
+      SPRING_CLOUD_GATEWAY_ROUTES_4_URI: http://search-service:8083
+      SPRING_CLOUD_GATEWAY_ROUTES_5_URI: http://image-service:8084
+      JWT_SECRET: supermarket-jwt-secret-key-must-be-at-least-32-characters
+    ports:
+      - "8000:8000"

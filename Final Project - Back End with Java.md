@@ -138,23 +138,24 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ---
 
-## Phase 9 — Authorization (`@PreAuthorize`)
+## Phase 9 — Authorization (`@PreAuthorize`) ✅
 
-- [ ] `@EnableMethodSecurity` enabled in each service
-- [ ] `POST /api/orders` — `isAuthenticated()`, `customerId` from `Authentication` object
-- [ ] `GET /api/orders/{id}` — `@orderAuthz.canRead(#id)` (owner or ADMIN)
-- [ ] `GET /api/orders` — `hasRole('ADMIN')`
-- [ ] `POST/PUT/DELETE /api/products` — `hasRole('ADMIN')`
-- [ ] `PATCH /api/orders/{id}/status` — `hasRole('ADMIN')`
-- [ ] `AccessDeniedException` handler returns 403
+- [x] `@EnableMethodSecurity` enabled in each service (`SecurityConfig.java`)
+- [x] `POST /api/orders` — `isAuthenticated()`, `customerId` from `Authentication` object
+- [x] `GET /api/orders/{id}` — `@orderAuthz.canRead(#id)` (owner or ADMIN)
+- [x] `GET /api/orders` — `hasRole('ADMIN')`
+- [x] `POST/PUT/DELETE /api/products` — `hasRole('ADMIN')`
+- [x] `PATCH /api/orders/{id}/status` — `hasRole('ADMIN')`
+- [x] `AccessDeniedException` handler returns 403 (`accessDeniedHandler` in each `SecurityConfig`)
 
 ---
 
-## Phase 10 — Docker
+## Phase 10 — Docker ✅
 
-- [ ] Multi-stage `Dockerfile` for each service
-- [ ] `docker-compose.yml` includes: all services + Postgres + Kafka + Elasticsearch
-- [ ] `docker compose up -d` brings up entire stack successfully
+- [x] Multi-stage `Dockerfile` for each service (7 Dockerfiles)
+- [x] `docker-compose.yml` includes: all services + Postgres + Kafka + Elasticsearch
+- [x] `docker compose config` validates successfully
+- [ ] `docker compose up -d` brings up entire stack (יבוצע בהגשה)
 
 ---
 
