@@ -1,0 +1,4 @@
+com\supermarket\image\config\S3Config.class
+com\supermarket\image\controller\ImageController.class
+com\supermarket\image\ImageServiceApplication.class
+com\supermarket\image\service\ImageService.class

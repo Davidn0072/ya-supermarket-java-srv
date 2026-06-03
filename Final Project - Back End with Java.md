@@ -110,11 +110,13 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ---
 
-## Phase 7 — image-service
+## Phase 7 — image-service ✅
 
-- [ ] S3 bucket configured
-- [ ] `POST /api/images/upload` — uploads image, returns URL
-- [ ] Service runs on port **8084**
+- [x] S3 bucket configured (credentials in application.properties)
+- [x] `POST /api/images/upload` — uploads image, returns URL
+- [x] Unit test passes — 2 tests
+- [x] Slice test passes — 1 test
+- [x] Service runs on port **8084**
 
 ---
 
