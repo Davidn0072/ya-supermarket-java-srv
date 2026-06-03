@@ -1,0 +1,17 @@
+com\supermarket\order\client\ProductClient.class
+com\supermarket\order\security\OrderAuthz.class
+com\supermarket\order\security\SecurityConfig.class
+com\supermarket\order\dto\StatusUpdateRequest.class
+com\supermarket\order\security\JwtService.class
+com\supermarket\order\dto\OrderItemRequest.class
+com\supermarket\order\repository\OrderRepository.class
+com\supermarket\order\OrderServiceApplication.class
+com\supermarket\order\service\OrderService.class
+com\supermarket\order\controller\OrderController.class
+com\supermarket\order\entity\OrderItem.class
+com\supermarket\order\dto\ProductResponse.class
+com\supermarket\order\event\OrderEvent.class
+com\supermarket\order\config\RestTemplateConfig.class
+com\supermarket\order\entity\Order.class
+com\supermarket\order\security\JwtAuthFilter.class
+com\supermarket\order\entity\OrderStatus.class

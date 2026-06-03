@@ -5,6 +5,7 @@
 Do NOT proceed to next phase unless explicitly instructed.
 Each checkbox represents a task that must be completed before moving forward.
 Do not Make Commit to Git hub By yourself
+At the end of each phase — update all checkboxes in this document to reflect what was completed.
 
 ---
 
@@ -62,22 +63,22 @@ Do not Make Commit to Git hub By yourself
 
 ---
 
-## Phase 4 — order-service
+## Phase 4 — order-service ✅
 
-- [ ] `Order` entity created
-- [ ] `OrderItem` entity created (with price snapshot)
-- [ ] `Order` → `OrderItem` cascade relation configured
-- [ ] Postgres connected
-- [ ] `POST /api/orders` — validates stock, decrements `stockQuantity` (calls product-service), calculates total
-- [ ] `GET /api/orders/{id}` — owner or ADMIN only
-- [ ] `GET /api/orders` — ADMIN only
-- [ ] `PATCH /api/orders/{id}/status` — ADMIN only
-- [ ] Publishes `OrderCreatedEvent` to Kafka `order-events`
-- [ ] Unit test passes
-- [ ] Slice test passes
-- [ ] Integration test passes
-- [ ] JaCoCo coverage ≥ 60%
-- [ ] Service runs on port **8081**
+- [x] `Order` entity created
+- [x] `OrderItem` entity created (with price snapshot)
+- [x] `Order` → `OrderItem` cascade relation configured
+- [x] Postgres connected
+- [x] `POST /api/orders` — validates stock, decrements `stockQuantity` (calls product-service), calculates total
+- [x] `GET /api/orders/{id}` — owner or ADMIN only (`@orderAuthz.canRead`)
+- [x] `GET /api/orders` — ADMIN only
+- [x] `PATCH /api/orders/{id}/status` — ADMIN only
+- [x] Publishes `OrderCreatedEvent` to Kafka `order-events`
+- [x] Unit test passes — 4 tests
+- [x] Slice test passes — 2 tests
+- [x] Integration test passes — 4 tests
+- [ ] JaCoCo coverage ≥ 60% (יאומת ב-`mvn verify`)
+- [x] Service runs on port **8081**
 
 ---
 
