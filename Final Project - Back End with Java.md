@@ -120,18 +120,21 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ---
 
-## Phase 8 — api-gateway
+## Phase 8 — api-gateway ✅
 
-- [ ] Spring Cloud Gateway configured
-- [ ] Route per service defined
-- [ ] `JwtGatewayFilter` validates `ACCESS_TOKEN` cookie on all protected routes
-- [ ] Public routes bypass JWT validation:
-  - [ ] `GET /api/products/**`
-  - [ ] `GET /api/categories/**`
-  - [ ] `POST /api/auth/login`
-  - [ ] `POST /api/auth/logout`
-- [ ] 401 returned for missing/invalid token
-- [ ] Gateway runs on port **8000**
+- [x] Spring Cloud Gateway configured
+- [x] Route per service defined (6 routes in application.yml)
+- [x] `JwtGatewayFilter` validates `ACCESS_TOKEN` cookie on all protected routes
+- [x] Public routes bypass JWT validation:
+  - [x] `GET /api/products/**`
+  - [x] `GET /api/categories/**`
+  - [x] `GET /api/search/**`
+  - [x] `POST /api/auth/login`
+  - [x] `POST /api/auth/logout`
+- [x] 401 returned for missing/invalid token
+- [x] Unit test passes — 4 tests
+- [x] Integration test passes — 3 tests
+- [x] Gateway runs on port **8000**
 
 ---
 

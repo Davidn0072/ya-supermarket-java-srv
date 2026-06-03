@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.supermarket.gateway.GatewayIntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.74 s -- in com.supermarket.gateway.GatewayIntegrationTest
