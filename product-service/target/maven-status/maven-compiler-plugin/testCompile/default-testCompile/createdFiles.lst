@@ -1,0 +1,3 @@
+com\supermarket\product\service\ProductServiceTest.class
+com\supermarket\product\controller\ProductControllerTest.class
+com\supermarket\product\ProductIntegrationTest.class

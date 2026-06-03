@@ -13,7 +13,7 @@ Do not Make Commit to Git hub By yourself
 - [x] Java 17 (JDK) installed — `java -version`
 - [x] Maven 3.9.14 installed — `mvn -version`
 - [x] Docker 29.3.1 installed and running — `docker -version`
-- [ ] IntelliJ IDEA installed
+- [x] IntelliJ IDEA installed and project opened successfully
 - [x] Git installed and GitHub repo created — https://github.com/Davidn0072/ya-supermarket-java-srv
 
 ---
@@ -24,41 +24,41 @@ Do not Make Commit to Git hub By yourself
 - [x] Folder structure created as specified below
 - [x] Each service has its own `pom.xml` with correct parent reference
 - [x] `mvn validate` → BUILD SUCCESS (all 8 modules recognized)
-- [ ] Project opens in IntelliJ without errors
+- [x] Project opens in IntelliJ without errors
 
 ---
 
-## Phase 2 — auth-service
+## Phase 2 — auth-service ✅
 
-- [ ] `AppUser` entity created (`id`, `username`, `passwordHash`, `roles`)
-- [ ] Postgres connected and schema created via JPA
-- [ ] BCrypt password encoding configured
-- [ ] `POST /api/auth/login` → returns JWT in HttpOnly cookie
-- [ ] `POST /api/auth/logout` → clears cookie
-- [ ] Unit test (Mockito) passes
-- [ ] Slice test (`@WebMvcTest`) passes
-- [ ] Integration test (`@SpringBootTest + H2`) passes
-- [ ] JaCoCo coverage ≥ 60%
-- [ ] Service runs on port **8085**
+- [x] `AppUser` entity created (`id`, `username`, `passwordHash`, `roles`)
+- [x] Postgres connected and schema created via JPA
+- [x] BCrypt password encoding configured
+- [x] `POST /api/auth/login` → returns JWT in HttpOnly cookie
+- [x] `POST /api/auth/logout` → clears cookie
+- [x] Unit test (Mockito) passes — 4 tests
+- [x] Slice test (`@WebMvcTest`) passes — 2 tests
+- [x] Integration test (`@SpringBootTest + H2`) passes — 4 tests
+- [ ] JaCoCo coverage ≥ 60% (יאומת ב-`mvn verify`)
+- [x] Service runs on port **8085**
 
 ---
 
-## Phase 3 — product-service
+## Phase 3 — product-service ✅
 
-- [ ] `Product` entity created with all fields (`sku` unique constraint)
-- [ ] `Category` entity created
-- [ ] Postgres connected
-- [ ] `GET /api/products` and `GET /api/products/{id}` implemented
-- [ ] `POST /api/products` (ADMIN only) — publishes `ProductCreatedEvent` to Kafka
-- [ ] `PUT /api/products/{id}` (ADMIN only)
-- [ ] `DELETE /api/products/{id}` (ADMIN only)
-- [ ] `GET /api/categories` implemented
-- [ ] Kafka producer configured and publishing to `product-events`
-- [ ] Unit test passes
-- [ ] Slice test passes
-- [ ] Integration test passes
-- [ ] JaCoCo coverage ≥ 60%
-- [ ] Service runs on port **8080**
+- [x] `Product` entity created with all fields (`sku` unique constraint)
+- [x] `Category` entity created
+- [x] Postgres connected
+- [x] `GET /api/products` and `GET /api/products/{id}` implemented
+- [x] `POST /api/products` (ADMIN only) — publishes `ProductCreatedEvent` to Kafka
+- [x] `PUT /api/products/{id}` (ADMIN only)
+- [x] `DELETE /api/products/{id}` (ADMIN only)
+- [x] `GET /api/categories` implemented
+- [x] Kafka producer configured and publishing to `product-events`
+- [x] Unit test passes — 4 tests
+- [x] Slice test passes — 2 tests
+- [x] Integration test passes — 4 tests
+- [ ] JaCoCo coverage ≥ 60% (יאומת ב-`mvn verify`)
+- [x] Service runs on port **8080**
 
 ---
 

@@ -1,0 +1,15 @@
+com\supermarket\product\dto\ProductRequest.class
+com\supermarket\product\dto\StockDecrementRequest.class
+com\supermarket\product\entity\Category.class
+com\supermarket\product\ProductServiceApplication.class
+com\supermarket\product\repository\ProductRepository.class
+com\supermarket\product\entity\Product.class
+com\supermarket\product\repository\CategoryRepository.class
+com\supermarket\product\security\SecurityConfig.class
+com\supermarket\product\config\DataInitializer.class
+com\supermarket\product\controller\CategoryController.class
+com\supermarket\product\event\ProductEvent.class
+com\supermarket\product\security\JwtAuthFilter.class
+com\supermarket\product\controller\ProductController.class
+com\supermarket\product\security\JwtService.class
+com\supermarket\product\service\ProductService.class
