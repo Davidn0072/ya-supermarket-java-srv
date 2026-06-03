@@ -82,17 +82,17 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ---
 
-## Phase 5 — customer-service
+## Phase 5 — customer-service ✅
 
-- [ ] `Customer` entity created (separate from `AppUser`)
-- [ ] Postgres connected
-- [ ] `GET /api/customers/{id}` — owner or ADMIN only
-- [ ] `PUT /api/customers/{id}` — update profile (address, phone)
-- [ ] Unit test passes
-- [ ] Slice test passes
-- [ ] Integration test passes
-- [ ] JaCoCo coverage ≥ 60%
-- [ ] Service runs on port **8082**
+- [x] `Customer` entity created (separate from `AppUser`)
+- [x] Postgres connected
+- [x] `GET /api/customers/{id}` — owner or ADMIN only (`@customerAuthz.canAccess`)
+- [x] `PUT /api/customers/{id}` — update profile (address, phone)
+- [x] Unit test passes — 3 tests
+- [x] Slice test passes — 2 tests
+- [x] Integration test passes — 4 tests
+- [ ] JaCoCo coverage ≥ 60% (יאומת ב-`mvn verify`)
+- [x] Service runs on port **8082**
 
 ---
 
