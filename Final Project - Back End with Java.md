@@ -187,7 +187,7 @@ At the end of each phase — update all checkboxes in this document to reflect w
 
 ## Phase 13 — Submission
 
-- [ ] `README.md` written with run/test/deploy instructions
+- [x] `README.md` written with run/test/deploy instructions
 - [ ] All code pushed to GitHub (manually by user)
 - [ ] Link sent to **devprojects2000@gmail.com**
 - [ ] Subject: `[Course No] - Java Final Project [Full Name]`
